@@ -1,0 +1,142 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id           String             @id @default(uuid())
+  name         String
+  email        String             @unique
+  passwordHash String
+  role         String             // ADMIN, SALES, WAREHOUSE, ACCOUNTS
+  status       String             @default("ACTIVE") // ACTIVE, INACTIVE
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  followUps      CustomerFollowUp[]
+  stockMovements StockMovement[]
+  challans       Challan[]
+
+  @@index([email])
+  @@index([role])
+  @@index([status])
+}
+
+model Customer {
+  id           String             @id @default(uuid())
+  name         String
+  mobile       String
+  email        String?
+  businessName String
+  gstNumber    String?
+  customerType String             // RETAIL, WHOLESALE, DISTRIBUTOR
+  address      String
+  status       String             // LEAD, ACTIVE, INACTIVE
+  followUpDate DateTime?
+  notes        String?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  followUps CustomerFollowUp[]
+  challans  Challan[]
+
+  @@index([name])
+  @@index([mobile])
+  @@index([status])
+  @@index([customerType])
+  @@index([followUpDate])
+}
+
+model CustomerFollowUp {
+  id          String   @id @default(uuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  note        String
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@index([customerId])
+  @@index([createdAt])
+}
+
+model Product {
+  id                String          @id @default(uuid())
+  name              String
+  sku               String          @unique
+  category          String
+  unitPrice         Float
+  currentStock      Int
+  minStockAlert     Int             @default(10)
+  warehouseLocation String
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  stockMovements StockMovement[]
+  challanItems   ChallanItem[]
+
+  @@index([sku])
+  @@index([category])
+  @@index([currentStock])
+}
+
+model StockMovement {
+  id          String   @id @default(uuid())
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity    Int
+  type        String   // IN, OUT
+  reason      String
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@index([productId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model Challan {
+  id            String        @id @default(uuid())
+  challanNumber String        @unique
+  customerId    String
+  customer      Customer      @relation(fields: [customerId], references: [id])
+  totalQuantity Int
+  totalAmount   Float
+  status        String        // DRAFT, CONFIRMED, CANCELLED
+  createdById   String
+  createdBy     User          @relation(fields: [createdById], references: [id])
+  confirmedAt   DateTime?
+  cancelledAt   DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  items ChallanItem[]
+
+  @@index([challanNumber])
+  @@index([customerId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ChallanItem {
+  id                  String   @id @default(uuid())
+  challanId           String
+  challan             Challan  @relation(fields: [challanId], references: [id], onDelete: Cascade)
+  productId           String
+  product             Product  @relation(fields: [productId], references: [id])
+  productNameSnapshot String
+  skuSnapshot         String
+  unitPriceSnapshot   Float
+  quantity            Int
+  lineTotal           Float
+  createdAt           DateTime @default(now())
+
+  @@index([challanId])
+  @@index([productId])
+}

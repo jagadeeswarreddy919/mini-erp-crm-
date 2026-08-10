@@ -1,0 +1,328 @@
+{
+	"info": {
+		"_postman_id": "c1a2b3c4-d5e6-7890-abcd-ef1234567890",
+		"name": "ApexERP Mini Portal API Suite",
+		"description": "Postman API collection for Wholesale Mini ERP + CRM Operations Portal covering Auth, Customers, Follow-ups, Products, Inventory Movements, Challan creation, atomic stock deduction confirmation, cancellation, and Dashboard.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5000/api",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "01. Auth",
+			"item": [
+				{
+					"name": "Login (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.success && jsonData.data.token) {",
+									"    pm.collectionVariables.set('token', jsonData.data.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"admin123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Get Current User Profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/auth/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "me"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "02. Dashboard",
+			"item": [
+				{
+					"name": "Get Dashboard Operational Summary",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/dashboard/summary",
+							"host": ["{{baseUrl}}"],
+							"path": ["dashboard", "summary"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "03. Customers CRM",
+			"item": [
+				{
+					"name": "List Customers (Search & Filter)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/customers?status=ACTIVE&page=1&limit=10",
+							"host": ["{{baseUrl}}"],
+							"path": ["customers"],
+							"query": [
+								{ "key": "status", "value": "ACTIVE" },
+								{ "key": "page", "value": "1" },
+								{ "key": "limit", "value": "10" }
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Customer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Nexus Global Supplies\",\n  \"businessName\": \"Nexus Trading Solutions\",\n  \"mobile\": \"+91 9911223344\",\n  \"email\": \"procurement@nexusglobal.com\",\n  \"gstNumber\": \"27EEEEEE5555E1Z1\",\n  \"customerType\": \"DISTRIBUTOR\",\n  \"address\": \"Plot 15, Sector 8, Vashi, Navi Mumbai\",\n  \"status\": \"ACTIVE\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/customers",
+							"host": ["{{baseUrl}}"],
+							"path": ["customers"]
+						}
+					}
+				},
+				{
+					"name": "Add Follow-up Note",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"note\": \"Discussed Q4 distributor credit terms and minimum order quantities.\",\n  \"followUpDate\": \"2026-08-25\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/customers/:customerId/follow-ups",
+							"host": ["{{baseUrl}}"],
+							"path": ["customers", ":customerId", "follow-ups"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "04. Products Catalog",
+			"item": [
+				{
+					"name": "List Products",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/products",
+							"host": ["{{baseUrl}}"],
+							"path": ["products"]
+						}
+					}
+				},
+				{
+					"name": "Create Product",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Pneumatic Fitting Connector 10mm\",\n  \"sku\": \"PNE-FIT-010\",\n  \"category\": \"Pneumatics\",\n  \"unitPrice\": 65.0,\n  \"currentStock\": 150,\n  \"minStockAlert\": 20,\n  \"warehouseLocation\": \"Rack D-02\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/products",
+							"host": ["{{baseUrl}}"],
+							"path": ["products"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "05. Inventory & Movements",
+			"item": [
+				{
+					"name": "Get Inventory Overview Summary",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/inventory",
+							"host": ["{{baseUrl}}"],
+							"path": ["inventory"]
+						}
+					}
+				},
+				{
+					"name": "List Stock Movement Logs",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/inventory/movements",
+							"host": ["{{baseUrl}}"],
+							"path": ["inventory", "movements"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "06. Sales Challans & Transactions",
+			"item": [
+				{
+					"name": "Create Sales Challan (Draft)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"customerId\": \"{{customerId}}\",\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"quantity\": 5,\n      \"unitPrice\": 85.0\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/challans",
+							"host": ["{{baseUrl}}"],
+							"path": ["challans"]
+						}
+					}
+				},
+				{
+					"name": "Confirm Challan (Atomic Stock Deduction)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/challans/:challanId/confirm",
+							"host": ["{{baseUrl}}"],
+							"path": ["challans", ":challanId", "confirm"]
+						}
+					}
+				},
+				{
+					"name": "Cancel Challan (Restores Stock)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/challans/:challanId/cancel",
+							"host": ["{{baseUrl}}"],
+							"path": ["challans", ":challanId", "cancel"]
+						}
+					}
+				}
+			]
+		}
+	]
+}
